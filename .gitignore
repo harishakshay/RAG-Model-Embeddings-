@@ -1,0 +1,13 @@
+__pycache__/
+.env
+chroma_db/
+instance/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+.DS_Store
+.vscode/
+.idea/
