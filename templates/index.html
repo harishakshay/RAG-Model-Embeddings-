@@ -6,10 +6,7 @@
   <title> RAG Assistant</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* Page */
     body {
       font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       background: linear-gradient(135deg,#e8f0ff,#f8fcff);
@@ -25,8 +22,6 @@
       background: linear-gradient(135deg,#0f1724,#0b1020);
       color: #e6eef8;
     }
-
-    /* Container */
     .container {
       width: 100%;
       max-width: 960px;
@@ -38,8 +33,6 @@
       overflow: visible;
     }
     body.dark .container { background:#0f1724; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
-
-    /* Header */
     header {
       display:flex;
       align-items:center;
@@ -57,7 +50,6 @@
       font-weight:700;
     }
 
-    /* Top controls */
     .top-controls {
       display:flex;
       gap:10px;
@@ -76,7 +68,6 @@
     }
     body.dark .dark-toggle { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.04); color: #e6eef8; }
 
-    /* Form */
     form { margin-bottom: 18px; width: 100%; }
     textarea[name="query"] {
       width:100%;
@@ -113,7 +104,6 @@
     .button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(43,155,224,0.18); }
     .small { padding: 8px 12px; font-size: 14px; border-radius: 9px; }
 
-    /* Loading */
     #loading {
       display:none;
       margin-top: 14px;
@@ -132,7 +122,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     body.dark #loading { color: #a6b8d9; }
 
-    /* Results area */
     .results {
       margin-top: 22px;
       display:flex;
@@ -202,7 +191,6 @@
       </div>
     </header>
 
-    <!-- Query form -->
     <form method="POST" onsubmit="onSubmitForm()">
       <textarea name="query" placeholder="Enter your question..." aria-label="Enter your question">{{ query }}</textarea>
 
@@ -216,7 +204,6 @@
       </div>
     </form>
 
-    <!-- Results -->
     <section class="results" aria-live="polite">
       {% if chunks %}
         <div>
@@ -236,13 +223,12 @@
         </div>
 
         <script>
-          // Typing animation: runs only on pages with an answer
           (function(){
-            const text = {{ answer|tojson }};
+            const text = {answer|tojson };
             const el = document.getElementById('typed-answer');
             if (!el || !text) return;
             let i = 0;
-            const speed = 10; // ms per char (tweak)
+            const speed = 10;
             function typeWriter() {
               if (i < text.length) {
                 const ch = text.charAt(i);
@@ -251,10 +237,8 @@
                 setTimeout(typeWriter, speed);
               }
             }
-            // hide loading if present (in case it was shown)
             const loading = document.getElementById('loading');
             if (loading) loading.style.display = 'none';
-            // start typing
             typeWriter();
           })();
         </script>
@@ -262,9 +246,7 @@
     </section>
   </div>
 
-  <!-- Scripts (theme + loading control) -->
   <script>
-    // Theme toggle (persist to localStorage)
     (function() {
       const btn = document.getElementById('theme-toggle');
       const body = document.body;
@@ -283,14 +265,11 @@
       });
     })();
 
-    // Show loading spinner when form is submitted
     function onSubmitForm(){
       const loading = document.getElementById('loading');
       if (loading) loading.style.display = 'block';
-      // allow form to submit normally (page will reload on server response)
     }
-
-    // On page load, hide loading (useful if user navigates back)
+    
     window.addEventListener('load', function(){
       const loading = document.getElementById('loading');
       if (loading) loading.style.display = 'none';

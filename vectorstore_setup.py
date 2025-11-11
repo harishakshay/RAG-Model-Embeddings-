@@ -5,17 +5,13 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-# ---------------------- ENV ----------------------
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# ---------------------- VECTORSTORE SETTINGS ----------------------
 persist_dir = "chroma_db"
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
-# ---------------------- LOAD OR CREATE VECTORSTORE ----------------------
 if os.path.exists(persist_dir) and os.listdir(persist_dir):
-    # Load existing vectorstore with embeddings
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
     print("Loaded existing vectorstore from disk.")
 else:

@@ -5,7 +5,6 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from groq import Groq
 
-# ---------------------- HELPER ----------------------
 def format_answer(raw_text):
     """
     Formats AI output for better readability in HTML.
@@ -17,21 +16,17 @@ def format_answer(raw_text):
     html = raw_text.replace("\n\n", "<br><br>").replace("- ", "• ").replace("1.", "<br>1.").replace("2.", "<br>2.")
     return html
 
-# ---------------------- ENV ----------------------
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # For embeddings
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")      # For chat
 
-# ---------------------- CLIENTS ----------------------
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 client = Groq(api_key=GROQ_API_KEY)
 
-# ---------------------- VECTORSTORE ----------------------
 persist_dir = "chroma_db"
 vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
 print("✅ Loaded vectorstore from disk.")
 
-# ---------------------- FLASK APP ----------------------
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
@@ -72,7 +67,6 @@ Answer:
 
     return render_template("index.html", query=query, chunks=chunks, answer=answer)
 
-# ---------------------- RUN APP ----------------------
 if __name__ == "__main__":
     app.run(debug=True)
 
