@@ -5,9 +5,6 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from groq import Groq
 
-# -----------------------------
-# Helper function to format AI output
-# -----------------------------
 def format_answer(raw_text):
     """
     Formats AI output for better readability in HTML.
@@ -23,10 +20,10 @@ def format_answer(raw_text):
         line = line.strip()
         if not line:
             continue
-        # Bullet list
+     
         if line.startswith("- "):
             html_lines.append(f"• {line[2:]}")
-        # Numbered list
+
         elif len(line) > 2 and line[0:2].isdigit() and line[2] == ".":
             html_lines.append(line)
         else:
@@ -35,16 +32,10 @@ def format_answer(raw_text):
     html = "\n".join(html_lines)
     return html
 
-# -----------------------------
-# Load environment variables
-# -----------------------------
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # For embeddings
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")      # For chat
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")      
 
-# -----------------------------
-# Initialize vectorstore and Groq client
-# -----------------------------
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 persist_dir = "chroma_db"
 vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
@@ -52,9 +43,6 @@ print("Loaded vectorstore from disk.")
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# -----------------------------
-# Initialize Flask app
-# -----------------------------
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
@@ -69,7 +57,6 @@ def index():
         if not query:
             answer = "Please enter a question."
         else:
-            # Retrieve top 5 chunks
             results = vectorstore.similarity_search(query, k=5)
             chunk_summaries = []
             for i, doc in enumerate(results, start=1):
@@ -79,13 +66,11 @@ def index():
 
                 answer = "I couldn't find any relevant information in the documents."
             else:
-                # Display chunk previews
                 chunks = [
                     doc.page_content[:500] + "..." if len(doc.page_content) > 500 else doc.page_content
                     for doc in results
                 ]
 
-                # Prepare context for Groq GPT
                 context = "\n\n".join([doc.page_content[:1000] for doc in results])  # Trim to avoid long context
                 prompt = f"""
 You are a helpful and knowledgeable AI assistant.
@@ -104,7 +89,6 @@ If you use the reference information, you may mention the source chunk number.
 """
 
                 try:
-                    # Generate AI answer
                     response = client.chat.completions.create(
                         messages=[{"role": "user", "content": prompt}],
                         model="openai/gpt-oss-120b"
@@ -116,8 +100,5 @@ If you use the reference information, you may mention the source chunk number.
 
     return render_template("index.html", query=query, chunks=chunks, answer=answer)
 
-# -----------------------------
-# Run Flask app
-# -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)

@@ -5,24 +5,19 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-# Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Directory to store vector embeddings
 persist_dir = "chroma_db"
 
-# Initialize embeddings
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
-# Check if vectorstore already exists
 if os.path.exists(persist_dir) and os.listdir(persist_dir):
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
     print("Loaded existing vectorstore from disk.")
 else:
     print("No existing vectorstore found. Creating a new one...")
 
-    # Load documents from 'data' folder
     docs = []
     data_path = "data"
     for file in os.listdir(data_path):
@@ -39,12 +34,10 @@ else:
     else:
         print(f"Loaded {len(docs)} documents.")
 
-        # Split documents into chunks
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(docs)
         print(f"Split into {len(splits)} chunks.")
 
-        # Create vectorstore from document chunks
         vectorstore = Chroma.from_documents(
             documents=splits,
             embedding=embedding,
