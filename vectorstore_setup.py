@@ -5,12 +5,17 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
+# Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Directory to store vector embeddings
 persist_dir = "chroma_db"
+
+# Initialize embeddings
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
+# Check if vectorstore already exists
 if os.path.exists(persist_dir) and os.listdir(persist_dir):
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
     print("Loaded existing vectorstore from disk.")
@@ -19,8 +24,9 @@ else:
 
     # Load documents from 'data' folder
     docs = []
-    for file in os.listdir("data"):
-        file_path = os.path.join("data", file)
+    data_path = "data"
+    for file in os.listdir(data_path):
+        file_path = os.path.join(data_path, file)
         if file.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
             docs.extend(loader.load())
@@ -28,17 +34,21 @@ else:
             loader = TextLoader(file_path)
             docs.extend(loader.load())
 
-    print(f"Loaded {len(docs)} documents.")
+    if not docs:
+        print("Warning: No documents found in 'data/' folder.")
+    else:
+        print(f"Loaded {len(docs)} documents.")
 
-    # Split documents into chunks
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = splitter.split_documents(docs)
-    print(f"Split into {len(splits)} chunks.")
+        # Split documents into chunks
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = splitter.split_documents(docs)
+        print(f"Split into {len(splits)} chunks.")
 
-    # Create and persist vectorstore
-    vectorstore = Chroma.from_documents(
-        documents=splits,
-        embedding=embedding,
-        persist_directory=persist_dir
-    )
-    print("Created new vectorstore and saved embeddings.")
+        # Create vectorstore from document chunks
+        vectorstore = Chroma.from_documents(
+            documents=splits,
+            embedding=embedding,
+            persist_directory=persist_dir
+        )
+        vectorstore.persist()
+        print("Created new vectorstore and saved embeddings.")
