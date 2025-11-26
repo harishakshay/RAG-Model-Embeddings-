@@ -1,5 +1,6 @@
 Flask
 python-dotenv
+gunicorn
 langchain
 langchain-community
 langchain-openai
