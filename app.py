@@ -20,10 +20,9 @@ def format_answer(raw_text):
         line = line.strip()
         if not line:
             continue
-     
+
         if line.startswith("- "):
             html_lines.append(f"• {line[2:]}")
-
         elif len(line) > 2 and line[0:2].isdigit() and line[2] == ".":
             html_lines.append(line)
         else:
@@ -32,18 +31,24 @@ def format_answer(raw_text):
     html = "\n".join(html_lines)
     return html
 
+# Load environment variables
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")      
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+# Load embeddings + vectorstore
 embedding = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
-persist_dir = "chroma_db"
+
+# IMPORTANT FOR VERCEL: chroma_db is one folder above "api"
+persist_dir = "../chroma_db"
+
 vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding)
 print("Loaded vectorstore from disk.")
 
 client = Groq(api_key=GROQ_API_KEY)
 
-app = Flask(__name__)
+# IMPORTANT FOR VERCEL: templates folder is one level above "api"
+app = Flask(__name__, template_folder="../templates")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -60,10 +65,10 @@ def index():
             results = vectorstore.similarity_search(query, k=5)
             chunk_summaries = []
             for i, doc in enumerate(results, start=1):
-                summary = doc.page_content[:300].replace("\n", " ")  # trim and remove newlines
+                summary = doc.page_content[:300].replace("\n", " ")
                 chunk_summaries.append(f"{i}. {summary}...")
-            if not results:
 
+            if not results:
                 answer = "I couldn't find any relevant information in the documents."
             else:
                 chunks = [
@@ -71,7 +76,8 @@ def index():
                     for doc in results
                 ]
 
-                context = "\n\n".join([doc.page_content[:1000] for doc in results])  # Trim to avoid long context
+                context = "\n\n".join([doc.page_content[:1000] for doc in results])
+
                 prompt = f"""
 You are a helpful and knowledgeable AI assistant.
 You have access to reference information. Use it only if it is relevant, and you may provide additional reasoning, explanations, examples, or step by step guidance.
@@ -100,5 +106,8 @@ If you use the reference information, you may mention the source chunk number.
 
     return render_template("index.html", query=query, chunks=chunks, answer=answer)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# --------------------------
+# Vercel serverless handler
+# --------------------------
+def handler(request, *args, **kwargs):
+    return app(request, *args, **kwargs)

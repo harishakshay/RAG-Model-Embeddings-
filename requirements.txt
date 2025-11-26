@@ -1,0 +1,9 @@
+Flask
+python-dotenv
+langchain
+langchain-community
+langchain-openai
+langchain-chroma
+sentence-transformers
+chromadb
+groq
